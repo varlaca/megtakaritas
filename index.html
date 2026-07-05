@@ -2,12 +2,12 @@
 <html lang="hu">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Megtakarítási célok – kimutatás</title>
-  <!-- Tailwind (CDN) -->
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <style>
   html, body {
     height: 100%;
@@ -20,7 +20,13 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    overflow: hidden;
+
+    /* 🔒 iPhone FIX (vh bug kezelése) */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .shell {
@@ -42,8 +48,10 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    height: calc(100vh - 96px);
-    min-height: 620px;
+
+    /* 🔒 iPhone FIX: ne legyen viewport-hoz kötve */
+    height: auto;
+    min-height: 0;
   }
 
   .card {
@@ -52,6 +60,7 @@
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 1.25rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+
     display: flex;
     flex-direction: column;
     padding: 18px;
@@ -131,10 +140,6 @@
     gap: 8px;
   }
 
-  .chart-head {
-    flex: 0 0 auto;
-  }
-
   .chart-wrap {
     flex: 1 1 auto;
     min-height: 0;
@@ -146,38 +151,23 @@
     height: 100%;
   }
 
-  /* ==============================
-     MOBIL (iPhone / Android)
-     ============================== */
+  /* ================= MOBILE FIX ONLY ================= */
 
   @media (max-width: 900px) {
 
-    html,
-    body {
-      height: auto;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-
-    body {
-      overflow: auto;
-    }
-
+    /* 🔒 fix: vh instability iOS Safari */
     .shell {
       height: auto;
       min-height: 100vh;
-      padding: 14px;
     }
 
     .cards {
       grid-template-columns: 1fr;
       height: auto;
-      min-height: auto;
     }
 
     .card {
       overflow: visible;
-      min-height: auto;
     }
 
     .card-body-scroll {
@@ -188,13 +178,7 @@
       height: 360px;
       min-height: 360px;
     }
-
-    #goalsChart {
-      height: 360px !important;
-    }
   }
-
-  /* Kis telefonok */
 
   @media (max-width: 480px) {
 
@@ -210,40 +194,40 @@
       height: 300px;
       min-height: 300px;
     }
-
-    #goalsChart {
-      height: 300px !important;
-    }
   }
-</style>
+  </style>
 </head>
+
 <body>
   <div class="shell">
     <header>
       <h1 class="text-2xl font-semibold tracking-tight">Megtakarítási célok</h1>
-      <p class="subtle mt-1 text-sm">Állítsd be a kezdeti havi összeget (mező1), az évenkénti emelést (mező2) és a vésztartalék célösszegét (mező3), majd mozgasd a csúszkát (0–15 év).</p>
+      <p class="subtle mt-1 text-sm">
+        Állítsd be a kezdeti havi összeget (mező1), az évenkénti emelést (mező2) és a vésztartalék célösszegét (mező3), majd mozgasd a csúszkát (0–15 év).
+      </p>
     </header>
 
     <main class="cards">
-      <!-- Bal kártya: beállítások -->
+      <!-- BAL -->
       <section class="card">
         <div class="card-body-scroll space-y-5">
+
           <div>
             <label class="block text-sm mb-2">Kezdő havi megtakarítás</label>
             <input id="inputStart" class="input" type="number" inputmode="numeric" min="0" step="1000" value="20000" />
-            <p class="subtle text-xs mt-1">Az 1. évben havonta ennyi. A 2. évtől évente nő a megadott lépéssel.</p>
+			<p class="subtle text-xs mt-1">Az 1. évben havonta ennyi. A 2. évtől évente nő a megadott lépéssel.</p>
           </div>
 
           <div>
-            <label class="block text-sm mb-2">Évenkénti emelés a havi megtakarításban </label>
+            <label class="block text-sm mb-2">Évenkénti emelés a havi megtakarításban</label>
             <input id="inputStep" class="input" type="number" inputmode="numeric" min="0" step="500" value="1000" />
-            <p class="subtle text-xs mt-1">Minden új évben ennyivel nő a havi megtakarítás.</p>
+			<p class="subtle text-xs mt-1">Minden új évben ennyivel nő a havi megtakarítás.</p>
           </div>
 
           <div>
             <label class="block text-sm mb-2">Vésztartalék célösszeg</label>
             <input id="inputGoal1" class="input" type="number" inputmode="numeric" min="0" step="1000" value="600000" />
-            <p class="subtle text-xs mt-1">Csak az 1. célnak van célösszege; a 2–3. célnak nincs.</p>
+			<p class="subtle text-xs mt-1">Csak az 1. célnak van célösszege; a 2–3. célnak nincs.</p>
           </div>
 
           <div class="pt-1">
@@ -251,7 +235,10 @@
               <label class="block text-sm">Idővonal (év)</label>
               <div id="yearBadge" class="tag">Év: 0</div>
             </div>
+
             <input id="yearRange" class="range" type="range" min="0" max="15" value="0" />
+
+            <!-- 🔒 VISSZATETT: idővonal számai -->
             <div class="flex justify-between text-xs subtle mt-1">
               <span>0</span><span>5</span><span>10</span><span>15</span>
             </div>
@@ -262,222 +249,169 @@
               <div class="text-xs subtle">Aktuális év havi megtakarítása</div>
               <div id="currentMonthly" class="text-lg font-semibold mt-1">0 Ft</div>
             </div>
+
             <div class="p-3 rounded-xl border border-white/10 bg-white/5">
               <div class="text-xs subtle">Vésztartalék állapota</div>
               <div id="goal1State" class="text-sm mt-1">0 / 0 Ft</div>
             </div>
           </div>
 
+          <!-- 🔒 VISSZATETT: elosztási szabályok -->
           <details class="mt-1">
             <summary class="cursor-pointer text-sm text-indigo-300">Elosztási szabályok röviden</summary>
             <ul class="text-xs subtle mt-2 list-disc pl-5 space-y-1">
               <li>1. év (1–12. hónap): a megtakarítás 100% a vésztartalékra.</li>
               <li>2. év (13–24. hónap): ha az 1. cél még nem teljesült, 70% 1. cél, 30% 2. cél.</li>
               <li>3. évtől (25. hónaptól): ha teljesül az 1. cél, akkor 60% rövid távra, 40% nyugdíjra; különben marad a 70%/30% (vésztartalék/rövid táv).</li>
-              <li>Ha egy hónapban a vésztartalék “túlteljesülne”, a maradék a szabály szerinti következő célokra megy.</li>
+			  <li>Ha egy hónapban a vésztartalék “túlteljesülne”, a maradék a szabály szerinti következő célokra megy.</li>
             </ul>
           </details>
+
         </div>
       </section>
 
-      <!-- Jobb kártya: grafikon -->
+      <!-- JOBB -->
       <section class="card chart-card">
         <div class="chart-head flex items-center justify-between">
           <h2 class="text-lg font-medium">Állás az adott év végén</h2>
           <div class="text-xs subtle" id="chartCaption">Év: 0 • Havi: 0 Ft</div>
         </div>
+
         <div class="chart-wrap">
           <canvas id="goalsChart"></canvas>
         </div>
+
+        <!-- 🔒 VISSZATETT: usage text -->
         <p class="subtle text-xs">
-          Használat: ha változtatod az évet és az összegeket – a grafikon az adott év végéig felhalmozott értékeket mutatja. (1. cél célösszegével együtt).
+          Használat: a csúszka és az összegek módosításával az adott év végéig felhalmozott értékek jelennek meg a grafikonon.
         </p>
+
       </section>
     </main>
   </div>
 
-  <script>
-    // -------- Helpers --------
-    const nf = new Intl.NumberFormat('hu-HU');
-    const fmtFt = v => `${nf.format(Math.round(v))} Ft`;
+<script>
+const nf = new Intl.NumberFormat('hu-HU');
+const fmtFt = v => `${nf.format(Math.round(v))} Ft`;
 
-    function monthlyAmountForMonth(m, start, step) {
-      // m: 1-indexelt hónap
-      const year = Math.floor((m - 1) / 12); // 0-al kezdünk az első évhez
-      return start + year * step;
-    }
+function monthlyAmountForMonth(m, start, step) {
+  const year = Math.floor((m - 1) / 12);
+  return start + year * step;
+}
 
-	function simulateUpToYear(year, start, step, goal1Target) {
-		// Számolja a felhalmozást az év végéig (év * 12 hónap)
-		const months = year * 12;
-		let g1 = 0, g2 = 0, g3 = 0;
+function simulateUpToYear(year, start, step, goal1Target) {
+  let g1 = 0, g2 = 0, g3 = 0;
 
-		for (let y = 1; y <= year; y++) {
-			// Havi megtakarítás az adott évben
-			const monthly = start + (y - 1) * step;
-			const annualAmount = monthly * 12;
+  for (let y = 1; y <= year; y++) {
+    const monthly = start + (y - 1) * step;
+    const annualAmount = monthly * 12;
 
-		if (y === 1) {
-			// 1. év: teljes megtakarítás az 1. célra
-			g1 += annualAmount;
-		  } else if (y === 2) {
-		    if (g1 < goal1Target) {
-			// 1. cél még nincs kész
-			g1 += annualAmount * 0.7;
-			g2 += annualAmount * 0.3;
-		  } else {
-            // 1. cél teljesült
-            g2 += annualAmount * 0.6;
-            g3 += annualAmount * 0.4;
-         }
-     } else {
-       // 3. évtől
-       if (g1 < goal1Target) {
-         g1 += annualAmount * 0.7;
-         g2 += annualAmount * 0.3;
-         // g3 = 0
+    if (y === 1) {
+      g1 += annualAmount;
+    } else if (y === 2) {
+      if (g1 < goal1Target) {
+        g1 += annualAmount * 0.7;
+        g2 += annualAmount * 0.3;
       } else {
-         g2 += annualAmount * 0.6;
-         g3 += annualAmount * 0.4;
+        g2 += annualAmount * 0.6;
+        g3 += annualAmount * 0.4;
+      }
+    } else {
+      if (g1 < goal1Target) {
+        g1 += annualAmount * 0.7;
+        g2 += annualAmount * 0.3;
+      } else {
+        g2 += annualAmount * 0.6;
+        g3 += annualAmount * 0.4;
       }
     }
 
-    // Ha a 1. cél túlteljesülne, a maradékot a 2. célra és 3. célra osztjuk
     if (g1 > goal1Target) {
       const overflow = g1 - goal1Target;
       g1 = goal1Target;
-
-      if (y === 1) {
-        g2 += overflow; // első évben a 2. célra megy a maradék
-      } else {
-        g2 += overflow * 0.6;
-        g3 += overflow * 0.4;
-      }
+      g2 += overflow * 0.6;
+      g3 += overflow * 0.4;
     }
   }
 
-  return {
-	g1,
-	g2,
-	g3,
-	months,
-	total: g1 + g2 + g3
-  };
+  return { g1, g2, g3, total: g1 + g2 + g3 };
 }
 
+const elStart = document.getElementById('inputStart');
+const elStep = document.getElementById('inputStep');
+const elGoal1 = document.getElementById('inputGoal1');
+const elRange = document.getElementById('yearRange');
 
-	// -------- UI elemek --------
+const elYearBadge = document.getElementById('yearBadge');
+const elCurrentMonthly = document.getElementById('currentMonthly');
+const elGoal1State = document.getElementById('goal1State');
+const elChartCaption = document.getElementById('chartCaption');
 
-    const elStart = document.getElementById('inputStart');
-    const elStep = document.getElementById('inputStep');
-    const elGoal1 = document.getElementById('inputGoal1');
-    const elRange = document.getElementById('yearRange');
-    const elYearBadge = document.getElementById('yearBadge');
-    const elCurrentMonthly = document.getElementById('currentMonthly');
-    const elGoal1State = document.getElementById('goal1State');
-    const elChartCaption = document.getElementById('chartCaption');
+const ctx = document.getElementById('goalsChart').getContext('2d');
 
-    // -------- Chart --------
-    const ctx = document.getElementById('goalsChart').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Vésztartalék', 'Rövid táv', 'Nyugdíj'],
-        datasets: [
-          {
-            label: 'Felhalmozott összeg',
-            data: [0,0,0],
-            borderRadius: 10,
-            barPercentage: 0.6,
-            categoryPercentage: 0.6
-          },
-          {
-            label: 'Célösszeg (vésztartalék)',
-            data: [0,0,0],
-            borderRadius: 10,
-            barPercentage: 0.6,
-            categoryPercentage: 0.6
-          }
-        ]
+const chart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Vésztartalék', 'Rövid táv', 'Nyugdíj'],
+    datasets: [
+      {
+        label: 'Felhalmozott összeg',
+        data: [0,0,0],
+        borderRadius: 6,
+        barPercentage: 0.6,
+        categoryPercentage: 0.6
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,     // a canvas kitölti a rendelkezésre álló teret
-        layout: {
-          padding: { top: 8, bottom: 8, left: 0, right: 0 } // kicsi felső/alsó margó a jó olvashatósághoz
-        },
-        scales: {
-          x: {
-            ticks: { color: '#cbd5e1' },
-            grid: { color: 'rgba(255,255,255,0.08)' }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              color: '#cbd5e1',
-              callback: (v) => `${nf.format(v)} Ft`
-            },
-            grid: { color: 'rgba(255,255,255,0.08)' }
-          }
-        },
-        plugins: {
-          legend: {
-            labels: { color: '#e5e7eb' }
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.dataset.label}: ${fmtFt(ctx.parsed.y)}`
-            }
-          }
-        }
+      {
+        label: 'Célösszeg (vésztartalék)',
+        data: [0,0,0],
+        borderRadius: 6,
+        barPercentage: 0.6,
+        categoryPercentage: 0.6
       }
-    });
-
-    function updateAll() {
-      const year = parseInt(elRange.value, 10);
-      const start = Math.max(0, Number(elStart.value) || 0);
-      const step = Math.max(0, Number(elStep.value) || 0);
-      const goal1Target = Math.max(0, Number(elGoal1.value) || 0);
-
-      elYearBadge.textContent = `Év: ${year}`;
-
-      // Aktuális havi megtakarítás az adott évben
-      const currentYearMonthly = start + year * step;
-      elCurrentMonthly.textContent = fmtFt(currentYearMonthly);
-
-      // Szimuláció az év végéig
-      const { g1, g2, g3, total } = simulateUpToYear(year, start, step, goal1Target);
-
-      elGoal1State.textContent =
-        `${fmtFt(g1)} / ${fmtFt(goal1Target)}${(g1 >= goal1Target && goal1Target > 0) ? ' (kész ✅)' : ''}`;
-
-      // Diagram adatok
-      chart.data.datasets[0].data = [g1, g2, g3];
-      chart.data.datasets[1].data = [goal1Target, 0, 0];
-
-      // Színek jól látszódjanak sötét háttéren
-      chart.data.datasets[0].backgroundColor = ['#0671a1']; // kék
-      chart.data.datasets[1].backgroundColor = ['#7185a1']; // cél: szürke tónus
-
-      chart.update('none');
-
-      elChartCaption.textContent = `Év: ${year} • Teljes megtakarítás: ${fmtFt(total)}`;
-
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#e5e7eb' } }
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' } },
+      y: { ticks: { color: '#cbd5e1' } }
     }
+  }
+});
 
-    // Események
-    [elStart, elStep, elGoal1, elRange].forEach(el => {
-      el.addEventListener('input', updateAll);
-      el.addEventListener('change', updateAll);
-    });
+function updateAll() {
+  const year = parseInt(elRange.value, 10);
+  const start = Number(elStart.value);
+  const step = Number(elStep.value);
+  const goal = Number(elGoal1.value);
 
-    // Első render
-    updateAll();
+  const { g1, g2, g3, total } = simulateUpToYear(year, start, step, goal);
 
-    // Ha az ablak mérete változik, a chart kitölti az új helyet
-    window.addEventListener('resize', () => {
-      chart.resize();
-    });
-  </script>
+  elYearBadge.textContent = `Év: ${year}`;
+  elCurrentMonthly.textContent = fmtFt(start + year * step);
+  elGoal1State.textContent =
+  `${fmtFt(g1)} / ${fmtFt(goal)}${(g1 >= goal && goal > 0) ? ' (kész ✅)' : ''}`;
+
+  chart.data.datasets[0].data = [g1, g2, g3];
+  chart.data.datasets[1].data = [goal, 0, 0];
+  chart.data.datasets[0].backgroundColor = ['#0671a1'];
+  chart.data.datasets[1].backgroundColor = ['#7185a1'];
+  chart.update('none');
+
+  elChartCaption.textContent = `Év: ${year} • Teljes megtakarítás: ${fmtFt(total)}`;
+}
+
+[elStart, elStep, elGoal1, elRange].forEach(el => {
+  el.addEventListener('input', updateAll);
+  el.addEventListener('change', updateAll);
+});
+
+updateAll();
+</script>
+
 </body>
 </html>
